@@ -17,7 +17,6 @@ int main(){
     int index[2];
 
     while(1){
-
         //////////// Red Player operations ////////////
         algorithm_A(board, red_player, index);
         board.place_orb(index[0], index[1], &red_player);
@@ -48,6 +47,5 @@ int main(){
 
         first_two_step = false;
     }
-
     return 0;
 } 
