@@ -45,7 +45,6 @@ void algorithm_A(Board board, Player player, int index[]){
         if(board.get_cell_color(row, col) == color || board.get_cell_color(row, col) == 'w') break;
     }
 
-    index[0] = row;
-    index[1] = col;
-    getchar();
+    index[0] = 0;
+    index[1] = 0;
 }

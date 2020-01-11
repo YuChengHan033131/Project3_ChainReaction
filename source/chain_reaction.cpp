@@ -3,7 +3,7 @@
 #include "../include/player.h"
 #include "../include/rules.h"
 #include "../include/algorithm.h"
-
+#include <ctime> 
 using namespace std;
 
 int main(){
@@ -17,6 +17,7 @@ int main(){
     int index[2];
 
     while(1){
+
         //////////// Red Player operations ////////////
         algorithm_A(board, red_player, index);
         board.place_orb(index[0], index[1], &red_player);
@@ -30,9 +31,9 @@ int main(){
             cout << "Red Player won the game !!!" << endl;
             return 0;
         }
-
+        system("pause");
         //////////// Blue Player operations ////////////
-        algorithm_B(board, blue_player, index);
+        algorithm_D(board, blue_player, index);
         board.place_orb(index[0], index[1], &blue_player);
 
         if(rules_violation(blue_player)) return 0;
@@ -46,6 +47,7 @@ int main(){
         }
 
         first_two_step = false;
+        system("pause");
     }
     return 0;
 } 
