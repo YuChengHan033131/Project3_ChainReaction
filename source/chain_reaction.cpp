@@ -17,7 +17,6 @@ int main(){
     int index[2];
 
     while(1){
-
         //////////// Red Player operations ////////////
         algorithm_A(board, red_player, index);
         board.place_orb(index[0], index[1], &red_player);
@@ -33,7 +32,7 @@ int main(){
         }
         system("pause");
         //////////// Blue Player operations ////////////
-        algorithm_D(board, blue_player, index);
+        algorithm_E(board, blue_player, index);
         board.place_orb(index[0], index[1], &blue_player);
 
         if(rules_violation(blue_player)) return 0;
@@ -49,5 +48,6 @@ int main(){
         first_two_step = false;
         system("pause");
     }
+    system("pause");
     return 0;
 } 
