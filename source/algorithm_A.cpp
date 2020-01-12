@@ -307,7 +307,7 @@ void algorithm_A(Board board, Player player, int index[]){
     // cout << board.get_orbs_num(0, 0) << endl;
     // cout << board.get_cell_color(0, 0) << endl;
     // board.print_current_board(0, 0, 0);
-    queue <Node> q1(5),q2(5),q3(5),q4(5),q5(5),q6(5);
+    queue <Node> q1(5),q2(5),q3(5),q4(5),q5(5),q6(5),shaker(5);
     
     for(int i=0;i<ROW;i++){
         for(int j=0;j<COL;j++){
@@ -315,24 +315,24 @@ void algorithm_A(Board board, Player player, int index[]){
             if(node->stability(board)==1&&board.get_cell_color(i,j)==player.get_color()){
                 if(node->invaded(board,player)){
                     q1.push(node);//repel
-                    cout << "repel" << ":" << i << "," << j << endl ;
+                    //cout << "repel" << ":" << i << "," << j << endl ;
 
                 }else if(node->CopNearby(board,player)){
-                    cout << "attack" << ":" << i << "," << j << endl ;
+                    //cout << "attack" << ":" << i << "," << j << endl ;
                     q2.push(node);//attack
                 }
             }else if(node->invaded(board,player)==false&&node->stability(board)!=1&&board.get_cell_color(i,j)=='w'){
-                cout << "passive" << ":" << i << "," << j << endl ;
+                //cout << "passive" << ":" << i << "," << j << endl ;
                 q3.push(node);//passive
             }
             else if(board.get_cell_color(i,j)==player.get_color()&&node->invaded(board,player)==false&&node->stability(board)!=1){
-                cout << "expand" << ":" << i << "," << j << endl ;
+                //cout << "expand" << ":" << i << "," << j << endl ;
                 q4.push(node);//expand
             }else if(node->invaded(board,player)&&board.get_cell_color(i,j)=='w'){
-                cout << "hide" << ":" << i << "," << j << endl ;
+                //cout << "hide" << ":" << i << "," << j << endl ;
                 q5.push(node);//hide
             }else if(node->invaded(board,player)&&board.get_cell_color(i,j)==player.get_color()&&node->stability(board)!=1){
-                cout << "worst" << ":" << i << "," << j << endl ;
+                //cout << "worst" << ":" << i << "," << j << endl ;
                 q6.push(node);//worst
             }
         }
@@ -360,14 +360,12 @@ void algorithm_A(Board board, Player player, int index[]){
     
     //attack
     if(q2.size()!=0){
-        cout << "attack!" ;
         int MaxInfluence=-1;
         for(int i=0;i<q2.size();i++){
             Node *temp=q2.front();
             q2.pop();
             q2.push(temp);
             int tempInfluence=temp->influence(board,player);
-            cout << "tempInfluence:" <<tempInfluence << endl ;
             if(tempInfluence>MaxInfluence){
                bestChoice=temp;
                 MaxInfluence=tempInfluence;
