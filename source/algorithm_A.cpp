@@ -133,10 +133,8 @@ class queue{
        }
     }
     void reset(){
-        delete(head);
         _front=-1;
         _back=-1;
-        delete(&_size);
     }
     void destroy(){
         while(_front!=-1){
@@ -144,6 +142,14 @@ class queue{
             pop();
             delete(temp);
         }
+    }
+    T* randomElement(int randomNum){
+        if(_front==-1){
+            cout << "error! nothing to random" << endl ;
+            return NULL;
+        }
+        int r=randomNum%size();
+        return head[(_front+r)%_size];
     }
 };
 class Node{
@@ -284,6 +290,42 @@ class Node{
             }
             return false;
         }
+        bool AnyNearby(Board board){
+            char copColor='w';
+            //up
+            if(row>0){
+                if(board.get_cell_color(row-1,col)!=copColor){
+                    //cout << "up" << endl ;
+                    //cout << row << "," << col << endl;
+                    return true;
+                }
+            }
+            //down
+            if(row<ROW-1){
+                if(board.get_cell_color(row+1,col)!=copColor){
+                    //cout << "down" << endl ;
+                    //cout << row << "," << col << endl;
+                    return true;
+                }
+            }
+            //left
+            if(col>0){
+                if(board.get_cell_color(row,col-1)!=copColor){
+                    //cout << "left" << endl ;
+                    //cout << row << "," << col << endl;
+                    return true;
+                }
+            }
+            //right
+            if(col<COL-1){
+                if(board.get_cell_color(row,col+1)!=copColor){
+                    //cout << "right" << endl ;
+                    //cout << row << "," << col << endl;
+                    return true;
+                }
+            }
+            return false;
+        }
         int influence(Board board,Player player){
             Board nextState=board;
             nextState.place_orb(row,col,&player);
@@ -315,42 +357,49 @@ void algorithm_A(Board board, Player player, int index[]){
             if(node->stability(board)==1&&board.get_cell_color(i,j)==player.get_color()){
                 if(node->invaded(board,player)){
                     q1.push(node);//repel
-                    //cout << "repel" << ":" << i << "," << j << endl ;
+                    cout << "repel" << ":" << i << "," << j << endl ;
 
                 }else if(node->CopNearby(board,player)){
-                    //cout << "attack" << ":" << i << "," << j << endl ;
+                    cout << "attack" << ":" << i << "," << j << endl ;
                     q2.push(node);//attack
                 }
             }else if(node->invaded(board,player)==false&&node->stability(board)!=1&&board.get_cell_color(i,j)=='w'){
-                //cout << "passive" << ":" << i << "," << j << endl ;
+                cout << "passive" << ":" << i << "," << j << endl ;
                 q3.push(node);//passive
             }
-            else if(board.get_cell_color(i,j)==player.get_color()&&node->invaded(board,player)==false&&node->stability(board)!=1){
-                //cout << "expand" << ":" << i << "," << j << endl ;
+            else if(board.get_cell_color(i,j)==player.get_color()&&node->invaded(board,player)==false){
+                cout << "expand" << ":" << i << "," << j << endl ;
                 q4.push(node);//expand
             }else if(node->invaded(board,player)&&board.get_cell_color(i,j)=='w'){
-                //cout << "hide" << ":" << i << "," << j << endl ;
+                cout << "hide" << ":" << i << "," << j << endl ;
                 q5.push(node);//hide
             }else if(node->invaded(board,player)&&board.get_cell_color(i,j)==player.get_color()&&node->stability(board)!=1){
-                //cout << "worst" << ":" << i << "," << j << endl ;
+                cout << "worst" << ":" << i << "," << j << endl ;
                 q6.push(node);//worst
+            }else{
+                cout << "unplaceable" << ":" << i << "," << j << endl ;
             }
         }
     }
+    cout << "done" << endl ;
     //repel
     Node *bestChoice=NULL;
     if(q1.size()!=0){
-        int MaxInfluence=-1;
+        int MaxInfluence=-10;
         for(int i=0;i<q1.size();i++){
             Node *temp;
             temp=q1.front();
             q1.pop();
             q1.push(temp);
             int tempInfluence=temp->influence(board,player);
+            //cout << tempInfluence << endl ;
             if(tempInfluence>MaxInfluence){
                 bestChoice=temp;
                 MaxInfluence=tempInfluence;
             }
+        }
+        if(bestChoice==NULL){
+            cout << "error!repel is NULL" << endl ;
         }
         index[0]=bestChoice->_row();
         index[1]=bestChoice->_col();
@@ -360,7 +409,7 @@ void algorithm_A(Board board, Player player, int index[]){
     
     //attack
     if(q2.size()!=0){
-        int MaxInfluence=-1;
+        int MaxInfluence=-10;
         for(int i=0;i<q2.size();i++){
             Node *temp=q2.front();
             q2.pop();
@@ -380,16 +429,32 @@ void algorithm_A(Board board, Player player, int index[]){
     //passive
     if(q3.size()!=0){
         int MinCapacity=5;
+        //bool seperate=false;
         for(int i=0;i<q3.size();i++){
             Node *temp=q3.front();
             q3.pop();
             q3.push(temp);
             int tempCapacity=temp->capacity(board);
             if(tempCapacity<MinCapacity){
-                bestChoice=temp;
+                shaker.reset();
+                shaker.push(temp);
                 MinCapacity=tempCapacity;
-            }  
+            }else if(tempCapacity==MinCapacity){
+                /*if(!temp->AnyNearby(board)){
+                    if(seperate==false){
+                        shaker.reset();
+                        seperate=true;
+                    }
+                    shaker.push(temp);
+                }*/
+                shaker.push(temp);
+            }
         }
+        if(shaker.size()==0){
+            cout << "error" ;
+        }
+        srand(time(NULL));
+        bestChoice=shaker.randomElement(rand());
         index[0]=bestChoice->_row();
         index[1]=bestChoice->_col();
         cout << "passive" << endl;
@@ -399,7 +464,7 @@ void algorithm_A(Board board, Player player, int index[]){
     //expand
     if(q4.size()!=0){
         int MaxStability=0;
-        int MaxInfluence=-1;
+        int MaxInfluence=-10;
         for(int i=0;i<q4.size();i++){
             Node *temp=q4.front();
             q4.pop();
