@@ -290,6 +290,33 @@ class Node{
             }
             return false;
         }
+        bool IfNearby(Board board,char Color){
+            //up
+            if(row>0){
+                if(board.get_cell_color(row-1,col)==Color){
+                    return true;
+                }
+            }
+            //down
+            if(row<ROW-1){
+                if(board.get_cell_color(row+1,col)==Color){
+                    return true;
+                }
+            }
+            //left
+            if(col>0){
+                if(board.get_cell_color(row,col-1)==Color){
+                    return true;
+                }
+            }
+            //right
+            if(col<COL-1){
+                if(board.get_cell_color(row,col+1)==Color){
+                    return true;
+                }
+            }
+            return false;
+        }
         bool AnyNearby(Board board){
             char copColor='w';
             //up
@@ -342,6 +369,38 @@ class Node{
             }
             return nextStatePlayerCells-boardPlayerCells;
         }
+        bool beRepel(Board board,Player player){
+            char copColor;
+            if(player.get_color()=='r'){
+                copColor='b';
+            }else{
+                copColor='r';
+            }
+            Board nextState=board;
+            queue <Node> q(5);
+            nextState.place_orb(row,col,&player);
+            for(int i=0;i<ROW;i++){
+                for(int j=0;j<COL;j++){
+                    Node *temp =new Node(i,j);
+                    if(nextState.get_cell_color(i,j)==copColor&&temp->stability(nextState)==1&&
+                       temp->IfNearby(nextState,player.get_color())){
+                           q.push(temp);
+                    }
+                }
+            }
+            for(int i=0;i<q.size();i++){
+                Node *temp=q.front();
+                q.pop();
+                q.push(temp);
+                Board afterNextState=nextState;
+                Player cop(copColor);
+                afterNextState.place_orb(temp->row,temp->col,&cop);
+                if(board.win_the_game(cop)){
+                    return true;
+                }
+            }
+            return false;
+        }
 };
 void algorithm_A(Board board, Player player, int index[]){
 
@@ -357,27 +416,27 @@ void algorithm_A(Board board, Player player, int index[]){
             if(node->stability(board)==1&&board.get_cell_color(i,j)==player.get_color()){
                 if(node->invaded(board,player)){
                     q1.push(node);//repel
-                    cout << "repel" << ":" << i << "," << j << endl ;
+                    //cout << "repel" << ":" << i << "," << j << endl ;
 
                 }else if(node->CopNearby(board,player)){
-                    cout << "attack" << ":" << i << "," << j << endl ;
+                    //cout << "attack" << ":" << i << "," << j << endl ;
                     q2.push(node);//attack
                 }
             }else if(node->invaded(board,player)==false&&node->stability(board)!=1&&board.get_cell_color(i,j)=='w'){
-                cout << "passive" << ":" << i << "," << j << endl ;
+                //cout << "passive" << ":" << i << "," << j << endl ;
                 q3.push(node);//passive
             }
             else if(board.get_cell_color(i,j)==player.get_color()&&node->invaded(board,player)==false){
-                cout << "expand" << ":" << i << "," << j << endl ;
+                //cout << "expand" << ":" << i << "," << j << endl ;
                 q4.push(node);//expand
             }else if(node->invaded(board,player)&&board.get_cell_color(i,j)=='w'){
-                cout << "hide" << ":" << i << "," << j << endl ;
+                //cout << "hide" << ":" << i << "," << j << endl ;
                 q5.push(node);//hide
             }else if(node->invaded(board,player)&&board.get_cell_color(i,j)==player.get_color()&&node->stability(board)!=1){
-                cout << "worst" << ":" << i << "," << j << endl ;
+                //cout << "worst" << ":" << i << "," << j << endl ;
                 q6.push(node);//worst
             }else{
-                cout << "unplaceable" << ":" << i << "," << j << endl ;
+                //cout << "unplaceable" << ":" << i << "," << j << endl ;
             }
         }
     }
@@ -393,18 +452,17 @@ void algorithm_A(Board board, Player player, int index[]){
             q1.push(temp);
             int tempInfluence=temp->influence(board,player);
             //cout << tempInfluence << endl ;
-            if(tempInfluence>MaxInfluence){
+            if(tempInfluence>MaxInfluence&&!temp->beRepel(board,player)){
                 bestChoice=temp;
                 MaxInfluence=tempInfluence;
             }
         }
-        if(bestChoice==NULL){
-            cout << "error!repel is NULL" << endl ;
+        if(bestChoice!=NULL){
+            index[0]=bestChoice->_row();
+            index[1]=bestChoice->_col();
+            cout << "repel" << endl;
+            return ;
         }
-        index[0]=bestChoice->_row();
-        index[1]=bestChoice->_col();
-        cout << "repel" << endl;
-        return ;
     }
     
     //attack
@@ -415,15 +473,17 @@ void algorithm_A(Board board, Player player, int index[]){
             q2.pop();
             q2.push(temp);
             int tempInfluence=temp->influence(board,player);
-            if(tempInfluence>MaxInfluence){
-               bestChoice=temp;
+            if(tempInfluence>MaxInfluence&&!temp->beRepel(board,player)){
+                bestChoice=temp;
                 MaxInfluence=tempInfluence;
             }
         }
-        index[0]=bestChoice->_row();
-        index[1]=bestChoice->_col();
-        cout << "attack" << endl;
-        return ;
+        if(bestChoice!=NULL){
+            index[0]=bestChoice->_row();
+            index[1]=bestChoice->_col();
+            cout << "attack" << endl;
+            return ;
+        }
     }
     
     //passive
